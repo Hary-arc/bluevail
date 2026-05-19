@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --deep-navy: #000E28;
+    --warm-navy: #00173F;
+    --clinical-white: #F5F3EE;
+    --accent-cream: #FFF7E0;
+    --gold-warm: #C4A265;
+    --aurora-teal: #4ECDC4;
+    --success: #2D6A4F;
+    --error: #9B2335;
+
+    --background: 0 0% 100%;
+    --foreground: 220 60% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 60% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 60% 8%;
+    --primary: 220 60% 8%;
+    --primary-foreground: 40 23% 94%;
+    --secondary: 40 23% 94%;
+    --secondary-foreground: 220 60% 8%;
+    --muted: 40 23% 94%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 43 100% 94%;
+    --accent-foreground: 220 60% 8%;
+    --destructive: 350 65% 37%;
+    --destructive-foreground: 40 23% 94%;
+    --border: 220 10% 85%;
+    --input: 220 10% 85%;
+    --ring: 43 100% 94%;
+    --radius: 0.25rem;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: var(--clinical-white);
+    background-color: var(--deep-navy);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', serif;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .font-body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-mono-caption {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .text-clinical-white {
+    color: var(--clinical-white);
+  }
+
+  .text-deep-navy {
+    color: var(--deep-navy);
+  }
+
+  .text-accent-cream {
+    color: var(--accent-cream);
+  }
+
+  .text-gold-warm {
+    color: var(--gold-warm);
+  }
+
+  .bg-deep-navy {
+    background-color: var(--deep-navy);
+  }
+
+  .bg-warm-navy {
+    background-color: var(--warm-navy);
+  }
+
+  .bg-clinical-white {
+    background-color: var(--clinical-white);
+  }
+
+  .bg-accent-cream {
+    background-color: var(--accent-cream);
+  }
+
+  .border-light {
+    border-color: rgba(245, 243, 238, 0.12);
+  }
+
+  .border-dark {
+    border-color: rgba(0, 14, 40, 0.12);
+  }
+}
+
+@layer utilities {
+  .text-shadow-hero {
+    text-shadow: 0 2px 40px rgba(0, 14, 40, 0.5);
+  }
+}
+
+/* ── Custom Animations ── */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+@keyframes loading-bar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 2s ease-out forwards;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
