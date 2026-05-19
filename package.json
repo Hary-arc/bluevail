@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://hary-arch.github.io/bluevail",
+  "homepage": "https://Hary-arch.github.io/bluevail",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
