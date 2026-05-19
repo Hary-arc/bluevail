@@ -1,305 +1,101 @@
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
-
-export default function AuroraSky() {
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-
-    const container = containerRef.current;
-
-    if (!container) return;
-
-    // Scene
-    const scene = new THREE.Scene();
-
-    // Camera
-    const camera =
-      new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-      );
-
-    camera.position.z = 5;
-
-    // Renderer
-    const renderer =
-      new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true
-      });
-
-    renderer.setSize(
-      window.innerWidth,
-      window.innerHeight
-    );
-
-    renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, 2)
-    );
-
-    renderer.setClearColor(0x000000, 1);
-
-    container.appendChild(renderer.domElement);
-
-    // ─────────────────────────────
-    // AURORA
-    // ─────────────────────────────
-
-    const auroraGeometry =
-      new THREE.PlaneGeometry(
-        12,
-        6,
-        200,
-        40
-      );
-
-    const auroraMaterial =
-      new THREE.ShaderMaterial({
-
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-
-        uniforms: {
-          uTime: { value: 0 }
-        },
-
-        vertexShader: `
-uniform float uTime;
-
-varying vec2 vUv;
-
-void main() {
-
-  vUv = uv;
-
-  vec3 pos = position;
-
-  // flowing waves
-  pos.y +=
-      sin(pos.x * 2.0 + uTime)
-    * 0.25;
-
-  pos.y +=
-      sin(pos.x * 4.0 - uTime * 0.7)
-    * 0.12;
-
-  // curtain depth
-  pos.z +=
-      sin(pos.x * 1.5 + uTime * 0.5)
-    * 0.3;
-
-  gl_Position =
-      projectionMatrix *
-      modelViewMatrix *
-      vec4(pos, 1.0);
-}
-`,
-
-fragmentShader: `
-uniform float uTime;
-
-varying vec2 vUv;
-
-void main() {
-
-  vec2 uv = vUv;
-
-  float ribbon =
-      smoothstep(
-        0.4,
-        0.0,
-        abs(uv.y - 0.5)
-      );
-
-  float glow =
-      sin(
-        uv.x * 10.0 +
-        uTime * 1.5
-      ) * 0.5 + 0.5;
-
-  float fade =
-      smoothstep(0.0, 0.08, uv.x)
-    *
-      smoothstep(0.0, 0.08, 1.0 - uv.x);
-
-  float alpha =
-      ribbon
-    * glow
-    * fade
-    * 0.75;
-
-  vec3 color =
-      mix(
-        vec3(0.0, 1.0, 0.7),
-        vec3(0.3, 1.0, 1.0),
-        uv.y
-      );
-
-  gl_FragColor =
-      vec4(color, alpha);
-}
-`
-      });
-
-    const aurora =
-      new THREE.Mesh(
-        auroraGeometry,
-        auroraMaterial
-      );
-
-    aurora.position.y = 1;
-
-    aurora.rotation.x =
-      -Math.PI * 0.15;
-
-    scene.add(aurora);
-
-    // ─────────────────────────────
-    // STARS
-    // ─────────────────────────────
-
-    const starCount = 1200;
-
-    const starPositions =
-      new Float32Array(starCount * 3);
-
-    for (let i = 0; i < starCount; i++) {
-
-      starPositions[i * 3] =
-        (Math.random() - 0.5) * 80;
-
-      starPositions[i * 3 + 1] =
-        Math.random() * 40;
-
-      starPositions[i * 3 + 2] =
-        -Math.random() * 50;
-    }
-
-    const starGeometry =
-      new THREE.BufferGeometry();
-
-    starGeometry.setAttribute(
-      'position',
-      new THREE.BufferAttribute(
-        starPositions,
-        3
-      )
-    );
-
-    const starMaterial =
-      new THREE.PointsMaterial({
-        color: '#ffffff',
-        size: 0.06,
-        transparent: true,
-        opacity: 0.9,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-
-    const stars =
-      new THREE.Points(
-        starGeometry,
-        starMaterial
-      );
-
-    scene.add(stars);
-
-    // ─────────────────────────────
-    // ANIMATION
-    // ─────────────────────────────
-
-    const clock = new THREE.Clock();
-
-    let raf: number;
-
-    const animate = () => {
-
-      raf =
-        requestAnimationFrame(animate);
-
-      const elapsed =
-        clock.getElapsedTime();
-
-      auroraMaterial.uniforms.uTime.value =
-        elapsed;
-
-      // subtle star movement
-      stars.rotation.y =
-        elapsed * 0.01;
-
-      renderer.render(
-        scene,
-        camera
-      );
-    };
-
-    animate();
-
-    // ─────────────────────────────
-    // RESIZE
-    // ─────────────────────────────
-
-    const onResize = () => {
-
-      camera.aspect =
-        window.innerWidth /
-        window.innerHeight;
-
-      camera.updateProjectionMatrix();
-
-      renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-      );
-    };
-
-    window.addEventListener(
-      'resize',
-      onResize
-    );
-
-    // ─────────────────────────────
-    // CLEANUP
-    // ─────────────────────────────
-
-    return () => {
-
-      cancelAnimationFrame(raf);
-
-      window.removeEventListener(
-        'resize',
-        onResize
-      );
-
-      auroraGeometry.dispose();
-      auroraMaterial.dispose();
-
-      starGeometry.dispose();
-      starMaterial.dispose();
-
-      renderer.dispose();
-
-      container.removeChild(
-        renderer.domElement
-      );
-    };
-
-  }, []);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        overflow: 'hidden',
-      }}
-    />
-  );
-}
+# 🚀 Automated Private-to-Public Deploy Setup
+
+This project uses a secure, automated pipeline to compile our static site inside a **private repository** and host the compiled output on **GitHub Pages via a separate public repository**. This architecture keeps our source code 100% hidden while utilizing free GitHub hosting tiers.
+
+---
+
+## 🛠️ How It Works (The Workflow)
+
+* **Source Code:** Kept fully secure and hidden inside this private repository.
+* **The Builder:** A GitHub Action compiles the project (`npm run build`) on every push to the `main` branch.
+* **The Target:** The Action verifies or creates a public repository (`kodegrove-labs/bluevail`) and force-pushes *only* the compiled static files (`/dist`) there.
+* **Hosting:** GitHub Pages serves the live site directly from the `main` branch of that public repository.
+
+---
+
+## 📋 Configuration Summary
+
+### 1. GitHub Action Pipeline (`.github/workflows/deploy.yml`)
+Automates the compilation and cross-repository synchronization using a Personal Access Token (`GH_PAT`) stored securely in repository secrets:
+
+```yaml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+
+      - name: Ensure Public Repo Exists
+        env:
+          GH_TOKEN: \${{ secrets.GH_PAT }}
+        run: |
+          if ! gh repo view kodegrove-labs/bluevail >/dev/null 2>&1; then
+            gh repo create kodegrove-labs/bluevail --public --description "Auto-deployed static site build"
+          fi
+        
+      - name: Deploy to Public Repo
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: \${{ secrets.GH_PAT }}
+          repository-name: kodegrove-labs/bluevail 
+          branch: main
+          folder: ./dist
+```
+
+### 2. Vite Router Base Path (`vite.config.js`)
+Configured to ensure all asset paths route through the GitHub Pages project subfolder (`/bluevail/`) instead of the default root domain:
+
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/bluevail/', // 🚨 Critical for GitHub Pages subfolder routing
+})
+```
+
+### 3. Dynamic Asset Paths (React / JSX)
+Because the application is hosted in a subfolder, hardcoded paths referencing the `public/` directory (like `/images/...`) must be dynamically prefixed with Vite’s base environment variable:
+
+* **Standard Static Image Tags:**
+  ```jsx
+  <img src={`${import.meta.env.BASE_URL}images/dentist-portrait.jpg`} alt="Portrait" />
+  ```
+
+* **Dynamic Mapping / Arrays:**
+  ```jsx
+  <img src={`${import.meta.env.BASE_URL}${member.image.substring(1)}`} alt={member.name} />
+  ```
+
+* **Inline Tailwind Background Styles:**
+  ```jsx
+  style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${img.src.substring(1)})` }}
+  ```
+
+---
+
+## 🔁 Everyday Development Cycle
+
+To update your live website, you only need to push code to your private repository. Run these commands locally:
+
+```bash
+git add .
+git commit -m "feat: updated website content"
+git push origin main
+```
+
+The GitHub Action runner will take over, build your project, overwrite the public distribution branch, and update your public domain in about 45 seconds.
